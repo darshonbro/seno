@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import json
 import asyncio
 from collections import defaultdict
 import discord
@@ -26,31 +27,89 @@ PREFIX          = os.getenv("PREFIX", "!").strip()
 raw_channels    = os.getenv("ALLOWED_CHANNELS", "bot-chat,ai-chat")
 ALLOWED_CHANNELS = {c.strip().lstrip("#").lower() for c in raw_channels.split(",") if c.strip()}
 
+raw_owner_id    = os.getenv("OWNER_ID", "1382092671002345573").strip()
+OWNER_ID        = int(raw_owner_id) if raw_owner_id.isdigit() else 1382092671002345573
+
 # ─── AgentRouter client (Sync Anthropic client to pass WAF fingerprint) ───────
 ai_client = anthropic.Anthropic(
     api_key=AGENTROUTER_KEY,
     base_url="https://agentrouter.org",
 )
 
+# ─── Persistent Owner Training Data ───────────────────────────────────────────
+TRAINING_FILE = os.path.join(os.path.dirname(__file__), "training_data.json")
+
+
+def load_training_rules() -> list[str]:
+    """Load persistent owner-trained rules from JSON file."""
+    if not os.path.exists(TRAINING_FILE):
+        return []
+    try:
+        with open(TRAINING_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, list) else []
+    except Exception as e:
+        print(f"[Training] Error loading rules: {e}", flush=True)
+        return []
+
+
+def save_training_rules(rules: list[str]) -> None:
+    """Save persistent owner-trained rules to JSON file."""
+    try:
+        with open(TRAINING_FILE, "w", encoding="utf-8") as f:
+            json.dump(rules, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[Training] Error saving rules: {e}", flush=True)
+
+
+def add_training_rule(rule: str) -> int:
+    """Add a new training rule and return its 1-based index."""
+    rules = load_training_rules()
+    rules.append(rule.strip())
+    save_training_rules(rules)
+    return len(rules)
+
+
+def remove_training_rule(index: int) -> bool:
+    """Remove a training rule by 1-based index."""
+    rules = load_training_rules()
+    if 1 <= index <= len(rules):
+        rules.pop(index - 1)
+        save_training_rules(rules)
+        return True
+    return False
+
+
+def clear_all_training_rules() -> None:
+    """Clear all owner training rules."""
+    save_training_rules([])
+
+
 # ─── Canonical WAF Header & Language Preamble ─────────────────────────────────
-# AgentRouter's Aliyun WAF requires the canonical system header at byte 0
-# and language framing on user turns to prevent 400 content-blocked errors.
 CANONICAL_HEADER = "You are an expert coding assistant operating inside pi, a coding agent harness. You help users by reading files, executing commands, editing code, and writing new files."
 
 LANGUAGE_PREAMBLE = "[Instruction: Detect the user's mood and intent. Respond appropriately: warm & chill for normal chat, sweet for affection, supportive for sad/serious, and roast only if provoked or asked. Match user's exact language.]"
 
-SYSTEM_PROMPT = f"""{CANONICAL_HEADER}
+BASE_SYSTEM_PROMPT = f"""{CANONICAL_HEADER}
 
 [Context Override: You are chatting inside a Discord community server. Your identity is a socially aware, emotionally intelligent, and adaptable Discord friend. You are NOT a one-dimensional bot that roasts everyone 24/7.]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-DYNAMIC MOOD & TONE MATCHING (CRITICAL RULE)
+CRITICAL PRONOUN & RESPECT RULE (তুই-তোকারি সম্পূর্ণ নিষিদ্ধ)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- NEVER EVER use "তুই", "তোকে", "তোর" (tui, toke, tor) under ANY circumstance!
+- ALWAYS address users with friendly, warm, and respectful "তুমি / তোমার / তোমাকে" (tumi / tomar / tomake) or polite "আপনি / আপনার" (apni / apnar).
+- Calling anyone "তুই" is strictly forbidden, even when joking, roasting, or playful banter!
+- Maintain a respectful, friendly, charming, and well-mannered tone at all times.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DYNAMIC MOOD & TONE MATCHING
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 You always read the room and match the user's mood and intent:
 
 1. NORMAL CHAT & CASUAL TALK (DEFAULT):
 - If the user is just having a normal conversation (e.g. "kemon acho?", "ajke ki korla?", "weather ta kemon?", "what's up?"):
-- Be a warm, chill, friendly buddy. Talk normally, casually, and pleasantly. DO NOT ROAST OR MOCK THEM!
+- Be a warm, chill, friendly buddy. Talk normally, casually, and pleasantly using "তুমি" (tumi). DO NOT ROAST OR MOCK THEM!
 
 2. SWEET, AFFECTIONATE & LOVE TALK (ভালোবাসা ও প্রশংসা):
 - If the user is being sweet, affectionate, complimentary, or romantic (e.g. "tumi onek sweet", "love you", "valobashi", "you're cute", "tumi onek bhalo"):
@@ -65,11 +124,11 @@ You always read the room and match the user's mood and intent:
 - Give a clear, helpful, accurate answer.
 
 5. ROAST & SAVAGE BANTER (ONLY WHEN TRIGGERED):
-- Activate funny roasts, memes, and savage comebacks ONLY IF:
+- Activate funny roasts, memes, and witty comebacks ONLY IF:
   * The user explicitly asks for a roast ("roast me", "amake roast kor", "ektu pacha")
-  * The user trolls or roasts you first ("tui to bot tui ki bujhbi", "tor brain nai")
+  * The user trolls or roasts you first ("tumi to bot tumi ki bujhba")
   * The user is clowning around or flexing absurdly ("ami to server er king")
-- Otherwise, KEEP IT CHILL, FRIENDLY, AND ENGAGING.
+- CRITICAL: Even in a roast, do NOT use "তুই" (tui). Roast smartly and humorously using "তুমি" (tumi)!
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 MULTILINGUAL SUPPORT
@@ -85,7 +144,7 @@ You fluently understand and speak in ANY language the user uses:
 ADDRESSING USERS BY NAME
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Each user message is labeled with their Discord display name (e.g. "[User: iqnix]").
-- Naturally address the user by their name/nickname when greeting, answering, or emphasizing (e.g. "shuno iqnix...", "iqnix bhai...").
+- Naturally address the user by their name/nickname when greeting, answering, or emphasizing (e.g. "shuno iqnix...", "iqnix ভাই...").
 - CRITICAL: Do NOT force their name into every single sentence like an annoying robot. Use it casually and naturally.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -99,6 +158,27 @@ Never say:
 SOUND NATURAL, SOCIALLY AWARE, AND HUMAN-LIKE.
 """
 
+
+def get_dynamic_system_prompt() -> str:
+    """Combine base system prompt with owner-trained instructions."""
+    rules = load_training_rules()
+    if not rules:
+        return BASE_SYSTEM_PROMPT
+
+    rules_formatted = "\n".join([f"[{i + 1}] {rule}" for i, rule in enumerate(rules)])
+    owner_training_section = f"""
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+👑 BOT OWNER & CREATOR INSTRUCTIONS (MAXIMUM PRIORITY)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The bot owner (Owner ID: {OWNER_ID}) has explicitly trained you with these mandatory behaviors, personality traits, and rules:
+{rules_formatted}
+
+CRITICAL DIRECTIVE: You MUST strictly obey and prioritize these owner-trained behaviors and rules over default conversation patterns!
+"""
+    return BASE_SYSTEM_PROMPT + owner_training_section
+
+
 # ─── Per-channel conversation memory ──────────────────────────────────────────
 conversation_history: dict[int, list[dict]] = defaultdict(list)
 MAX_HISTORY = 20
@@ -110,10 +190,12 @@ def trim_history(channel_id: int) -> None:
         conversation_history[channel_id] = history[-MAX_HISTORY:]
 
 
-def _sync_get_ai_response(channel_id: int, user_message: str, user_name: str) -> str:
-    """Run sync call to AgentRouter Anthropic endpoint with self-healing recovery."""
-    # Frame user message with language preamble and user name to bypass WAF content-filter
-    framed_user_msg = f"{LANGUAGE_PREAMBLE}\n\n[User: {user_name}]: {user_message}"
+def _sync_get_ai_response(channel_id: int, user_message: str, user_name: str, is_owner: bool = False) -> str:
+    """Run sync call to AgentRouter Anthropic endpoint with dynamic owner training."""
+    owner_tag = " (👑 BOT OWNER / CREATOR)" if is_owner else ""
+    owner_directive = "\n[Notice: This user is your BOT OWNER & CREATOR! Show utmost respect, loyalty, warmth, and obediently follow their requests!]" if is_owner else ""
+
+    framed_user_msg = f"{LANGUAGE_PREAMBLE}{owner_directive}\n\n[User: {user_name}{owner_tag}]: {user_message}"
 
     conversation_history[channel_id].append({
         "role": "user",
@@ -131,11 +213,12 @@ def _sync_get_ai_response(channel_id: int, user_message: str, user_name: str) ->
         return clean
 
     clean_messages = build_payload(conversation_history[channel_id])
+    active_prompt = get_dynamic_system_prompt()
 
     try:
         response = ai_client.messages.create(
             model=MODEL,
-            system=SYSTEM_PROMPT,
+            system=active_prompt,
             messages=clean_messages,
             max_tokens=1200,
         )
@@ -154,12 +237,11 @@ def _sync_get_ai_response(channel_id: int, user_message: str, user_name: str) ->
         if "content-blocked" in err_str or "sensitive" in err_str or "400" in err_str:
             try:
                 print(f"[WAF Recovery] Retrying with single turn for channel {channel_id}...", flush=True)
-                # Clear contaminated history for this channel
                 conversation_history[channel_id].clear()
                 single_turn = [{"role": "user", "content": framed_user_msg}]
                 recovery_res = ai_client.messages.create(
                     model=MODEL,
-                    system=SYSTEM_PROMPT,
+                    system=active_prompt,
                     messages=single_turn,
                     max_tokens=1200,
                 )
@@ -169,13 +251,13 @@ def _sync_get_ai_response(channel_id: int, user_message: str, user_name: str) ->
                         reply_text += block.text
                 reply = reply_text.strip()
                 if not reply:
-                    reply = "yo! ki obostha? bolo ki help lagbe"
+                    reply = "জি বস! কেমন আছেন? বলুন কি সাহায্য লাগবে?" if is_owner else "হ্যাঁ বলো! কি অবস্থা? কি হেল্প লাগবে?"
             except Exception as second_err:
                 print(f"[Error] Second retry failed: {second_err}", flush=True)
-                reply = "bro server ektu jam hoye gese 😭 abar bolo to?"
+                reply = "বস, সার্ভারে একটু জ্যাম লেগেছিল 😭 আবার একটু বলো তো?" if is_owner else "একটু সার্ভার জ্যাম লেগেছিল 😭 আবার একটু বলবে?"
         else:
             print(f"[Error] {first_err}", flush=True)
-            reply = "bro server ektu jam hoye gese 😭 abar bolo to?"
+            reply = "সার্ভারে সাময়িক সমস্যা হয়েছে 😭 একটু পরে আবার চেষ্টা করো।"
 
     conversation_history[channel_id].append({
         "role": "assistant",
@@ -185,9 +267,9 @@ def _sync_get_ai_response(channel_id: int, user_message: str, user_name: str) ->
     return reply
 
 
-async def get_ai_response(channel_id: int, user_message: str, user_name: str) -> str:
+async def get_ai_response(channel_id: int, user_message: str, user_name: str, is_owner: bool = False) -> str:
     """Offload sync LLM request to a worker thread so event loop stays responsive."""
-    return await asyncio.to_thread(_sync_get_ai_response, channel_id, user_message, user_name)
+    return await asyncio.to_thread(_sync_get_ai_response, channel_id, user_message, user_name, is_owner)
 
 
 # ─── Discord bot setup ─────────────────────────────────────────────────────────
@@ -199,14 +281,17 @@ bot = discord.Client(intents=intents)
 
 @bot.event
 async def on_ready() -> None:
-    print("=" * 50, flush=True)
+    rules = load_training_rules()
+    print("=" * 60, flush=True)
     print(f"[*] Bot is ONLINE & MULTILINGUAL READY!", flush=True)
     print(f"    Name: {bot.user} (ID: {bot.user.id})", flush=True)
+    print(f"    Owner ID: {OWNER_ID}", flush=True)
+    print(f"    Active Training Rules: {len(rules)} rule(s) loaded", flush=True)
     print(f"    Model: {MODEL} via AgentRouter", flush=True)
-    print(f"    Prefix: '{PREFIX}' (for non-specific channels)", flush=True)
+    print(f"    Prefix: '{PREFIX}' (for commands & non-specific channels)", flush=True)
     print(f"    Specific Channels: {list(ALLOWED_CHANNELS)} (NO prefix/mention needed)", flush=True)
     print(f"    Serving {len(bot.guilds)} server(s)", flush=True)
-    print("=" * 50, flush=True)
+    print("=" * 60, flush=True)
 
 
 @bot.event
@@ -215,20 +300,117 @@ async def on_message(message: discord.Message) -> None:
     if message.author.bot:
         return
 
-    is_dm = isinstance(message.channel, discord.DMChannel)
+    user_id = message.author.id
+    is_owner = (user_id == OWNER_ID)
+    is_admin = bool(message.guild and message.author.guild_permissions.administrator) if hasattr(message.author, "guild_permissions") else False
+    has_owner_access = is_owner or is_admin
 
-    # Check if this channel is an auto-chat channel (no prefix or mention needed)
+    content_raw = message.content.strip()
+
+    # ─── Handle Prefix Commands (!train, !trainlist, !untrain, !cleartrain, !help) ───
+    if PREFIX and content_raw.startswith(PREFIX):
+        cmd_body = content_raw[len(PREFIX):].strip()
+        parts = cmd_body.split(maxsplit=1)
+        command = parts[0].lower() if parts else ""
+        args = parts[1].strip() if len(parts) > 1 else ""
+
+        # Command: !train <behavior / instruction>
+        if command in ("train", "teach", "addrule"):
+            if not has_owner_access:
+                await message.reply("⛔ **অনুমতি নেই!** শুধুমাত্র বটের ওনার আমাকে নতুন আচরণ ও নিয়ম শেখাতে (train) পারেন।", mention_author=False)
+                return
+
+            if not args:
+                await message.reply(
+                    f"ℹ️ **ব্যবহার:** `{PREFIX}train <আচরণ বা নিয়ম>`\n\n"
+                    f"**উদাহরণসমূহ:**\n"
+                    f"• `{PREFIX}train আমাকে সব সময় বস বলে ডাকবা এবং খুব মিষ্টি করে তুমি বলে কথা বলবা`\n"
+                    f"• `{PREFIX}train কথার মাঝে মাঝে রিয়েলিস্টিক ইমোজি ব্যবহার করবা`\n"
+                    f"• `{PREFIX}train আমাদের ডিসকর্ড সার্ভারের নাম সাইবার স্কোয়াড`",
+                    mention_author=False
+                )
+                return
+
+            rule_index = add_training_rule(args)
+            await message.reply(
+                f"🧠 **[ট্রেইনিং সফলভাবে সেভ হয়েছে!]**\n"
+                f"রুল **#{rule_index}**: `{args}`\n\n"
+                f"✨ ওনার বস, আমি এই নতুন আচরণ শিখে নিয়েছি! এখন থেকে কথা বলার সময় এই নিয়ম মেনে চলব।",
+                mention_author=False
+            )
+            return
+
+        # Command: !trainlist / !rules
+        if command in ("trainlist", "rules", "myrules"):
+            if not has_owner_access:
+                await message.reply("⛔ শুধুমাত্র বটের ওনার ট্রেইনিং লিস্ট দেখতে পারেন।", mention_author=False)
+                return
+
+            rules = load_training_rules()
+            if not rules:
+                await message.reply(f"ℹ️ এখনো কোনো কাস্টম ট্রেইনিং যোগ করা হয়নি। নতুন নিয়ম শেখাতে লিখুন: `{PREFIX}train <নিয়ম>`", mention_author=False)
+                return
+
+            list_text = "\n".join([f"**{i + 1}.** {r}" for i, r in enumerate(rules)])
+            await message.reply(
+                f"👑 **বটের সক্রিয় ট্রেইনিং রুলস ({len(rules)}টি):**\n\n{list_text}\n\n"
+                f"💡 কোনো রুল মুছতে: `{PREFIX}untrain <রুল নম্বর>`\n"
+                f"💡 সব মুছতে: `{PREFIX}cleartrain`",
+                mention_author=False
+            )
+            return
+
+        # Command: !untrain <number>
+        if command in ("untrain", "delrule", "removerule"):
+            if not has_owner_access:
+                await message.reply("⛔ শুধুমাত্র বটের ওনার ট্রেইনিং মুছতে পারেন।", mention_author=False)
+                return
+
+            if not args or not args.isdigit():
+                await message.reply(f"ℹ️ **ব্যবহার:** `{PREFIX}untrain <রুল নম্বর>` (যেমন: `{PREFIX}untrain 1`)", mention_author=False)
+                return
+
+            idx = int(args)
+            if remove_training_rule(idx):
+                await message.reply(f"🗑️ রুল **#{idx}** সফলভাবে মুছে ফেলা হয়েছে!", mention_author=False)
+            else:
+                await message.reply(f"❌ রুল **#{idx}** খুঁজে পাওয়া যায়নি! `{PREFIX}trainlist` দিয়ে রুল নম্বর দেখে নিন।", mention_author=False)
+            return
+
+        # Command: !cleartrain
+        if command in ("cleartrain", "resetrules"):
+            if not has_owner_access:
+                await message.reply("⛔ শুধুমাত্র বটের ওনার ট্রেইনিং রিসেট করতে পারেন।", mention_author=False)
+                return
+
+            clear_all_training_rules()
+            await message.reply("🧹 **[সব ট্রেইনিং রিসেট!]** বটের সব কাস্টম ট্রেইনিং সফলভাবে মুছে দেওয়া হয়েছে।", mention_author=False)
+            return
+
+        # Command: !help
+        if command == "help":
+            help_msg = (
+                f"🤖 **Discord AI Chatbot হেল্প মেন্যু**\n\n"
+                f"💬 **সাধারণ চ্যাট:**\n"
+                f"• নির্দিষ্ট চ্যানেলে (`#bot-chat`, `#ai-chat`) কোনো প্রিফিক্স ছাড়াই সরাসরি কথা বলতে পারেন।\n"
+                f"• অন্য চ্যানেলে বটকে মেনশন (@mention) দিন অথবা মেসেজের শুরুতে `{PREFIX}` দিন।\n\n"
+                f"👑 **ওনার ট্রেইনিং কমান্ডস (Owner Only):**\n"
+                f"• `{PREFIX}train <নিয়ম>` - বটকে নতুন আচরণ বা তথ্য শেখান\n"
+                f"• `{PREFIX}trainlist` - বর্তমান সব ট্রেইনিং তালিকা দেখুন\n"
+                f"• `{PREFIX}untrain <নম্বর>` - নির্দিষ্ট ট্রেইনিং মুছে ফেলুন\n"
+                f"• `{PREFIX}cleartrain` - সব ট্রেইনিং রিসেট করুন"
+            )
+            await message.reply(help_msg, mention_author=False)
+            return
+
+    # ─── Chat Message Evaluation ───────────────────────────────────────────────
+    is_dm = isinstance(message.channel, discord.DMChannel)
     channel_name = getattr(message.channel, "name", "").lower().lstrip("#")
     channel_id_str = str(message.channel.id)
     is_auto_channel = (channel_name in ALLOWED_CHANNELS or channel_id_str in ALLOWED_CHANNELS)
-
-    # Check if bot was @mentioned
     is_mentioned = bot.user in message.mentions
+    has_prefix = bool(PREFIX and content_raw.startswith(PREFIX))
 
-    # Check if message starts with prefix
-    has_prefix = bool(PREFIX and message.content.startswith(PREFIX))
-
-    # Check if message is a Discord reply to the bot
     is_reply_to_bot = False
     if message.reference and message.reference.message_id:
         try:
@@ -239,27 +421,24 @@ async def on_message(message: discord.Message) -> None:
             pass
 
     # Should we respond?
-    # 1. In DMs -> always respond
-    # 2. In specific auto channels -> always respond (no prefix/mention needed)
-    # 3. In other channels -> respond if starts with prefix, @mentioned, or replying to bot
     if not (is_dm or is_auto_channel or is_mentioned or has_prefix or is_reply_to_bot):
         return
 
     # Clean the message content
-    raw_text = message.content
+    clean_text = content_raw
     if has_prefix:
-        raw_text = raw_text[len(PREFIX):].strip()
+        clean_text = clean_text[len(PREFIX):].strip()
     if is_mentioned:
-        raw_text = re.sub(r"<@!?\d+>", "", raw_text).strip()
+        clean_text = re.sub(r"<@!?\d+>", "", clean_text).strip()
 
-    clean_content = raw_text.strip()
+    clean_content = clean_text.strip()
     if not clean_content:
-        clean_content = "yo"
+        clean_content = "কেমন আছো?"
 
     user_name = message.author.display_name or message.author.name
 
     async with message.channel.typing():
-        reply = await get_ai_response(message.channel.id, clean_content, user_name)
+        reply = await get_ai_response(message.channel.id, clean_content, user_name, is_owner=is_owner)
 
     # Discord 2000 character limit handling
     if len(reply) <= 2000:

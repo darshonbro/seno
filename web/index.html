@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Discord AI Chatbot - Web Control Panel & Portal</title>
-  <meta name="description" content="Official Web Management Panel, Live Playground, and Legal URL Hub for Discord AI Chatbot.">
+  <meta name="description" content="Official Web Management Panel, Live Playground, Owner Training Center, and Legal URL Hub for Discord AI Chatbot.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -30,6 +30,7 @@
       <nav>
         <ul class="nav-links">
           <li><a href="index.html" class="nav-link active">Dashboard</a></li>
+          <li><a href="#training-studio" class="nav-link">Owner Training</a></li>
           <li><a href="terms.html" class="nav-link">Terms of Service</a></li>
           <li><a href="privacy.html" class="nav-link">Privacy Policy</a></li>
           <li><a href="#playground" class="nav-btn">AI Playground</a></li>
@@ -69,8 +70,8 @@
     <!-- Hero Section -->
     <section class="hero">
       <div class="hero-pill">Next-Gen Discord AI Integration</div>
-      <h1>Intelligent, Multilingual & <span class="hero-gradient-text">Adaptive Chatbot</span></h1>
-      <p>Seamlessly interacts in Bangla, English, Banglish & Hindi. Features emotion detection, dynamic tone matching, and safe transient memory.</p>
+      <h1>Intelligent, Respectful & <span class="hero-gradient-text">Adaptive Chatbot</span></h1>
+      <p>Custom-trained by owner with zero disrespectful slang (তুই-তোকারি সম্পূর্ণ নিষিদ্ধ). Fluent in Bangla, English, Banglish & Hindi.</p>
 
       <div class="hero-stats-row">
         <div class="stat-card">
@@ -78,16 +79,16 @@
           <div class="stat-value" id="stat-model">deepseek-v4-flash</div>
         </div>
         <div class="stat-card">
+          <div class="stat-label">👑 Owner ID</div>
+          <div class="stat-value" id="stat-owner" style="font-size: 0.95rem; font-family: var(--font-mono); color: var(--accent-cyan);">1382092671002345573</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">🛡️ Pronoun Policy</div>
+          <div class="stat-value" style="font-size: 0.95rem; color: #34d399;">তুমি / আপনি (No তুই)</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-label">Default Prefix</div>
           <div class="stat-value" id="stat-prefix">!</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Auto Channels</div>
-          <div class="stat-value" id="stat-channels" style="font-size: 1rem;">#bot-chat, #ai-chat</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Context Memory</div>
-          <div class="stat-value">20 Turns (RAM)</div>
         </div>
       </div>
     </section>
@@ -110,13 +111,13 @@
               <div class="chat-avatar">AI</div>
               <div class="chat-bubble">
                 <div class="chat-author">Discord AI Chatbot</div>
-                Hello! Ami shob bhashay kotha bolte pari (Bangla, English, Banglish, Hindi). Try me with anything!
+                হ্যালো! আমি বাংলায় সম্মান ও আন্তরিকতার সাথে কথা বলি (তুই-তোকারি সম্পূর্ণ বন্ধ)। কিছু জিজ্ঞাসা করতে পারেন!
               </div>
             </div>
           </div>
 
           <form class="chat-input-row" id="chat-form" onsubmit="handleChatSubmit(event)">
-            <input type="text" id="chat-input" class="chat-input" placeholder="Say 'kemon acho?' or ask anything..." autocomplete="off" required>
+            <input type="text" id="chat-input" class="chat-input" placeholder="বলুন 'কেমন আছো?' বা যেকোনো কিছু..." autocomplete="off" required>
             <button type="submit" class="send-btn" id="chat-send-btn">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
             </button>
@@ -135,7 +136,7 @@
 
         <div class="config-group">
           <label class="config-label" for="client-id-input">Discord Application / Client ID</label>
-          <input type="text" id="client-id-input" class="config-input" placeholder="e.g. 132456789012345678" oninput="updateInviteUrl()">
+          <input type="text" id="client-id-input" class="config-input" placeholder="e.g. 1382092671002345573" oninput="updateInviteUrl()">
         </div>
 
         <div class="config-label">Required Bot Permissions</div>
@@ -160,6 +161,48 @@
       </div>
     </div>
 
+    <!-- Owner Live Behavior & Training Studio -->
+    <section class="glass-panel" id="training-studio" style="margin-bottom: 3rem;">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">
+            <span style="color: #f59e0b;">👑</span>
+            Owner Behavior & Training Studio
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            You can train the bot directly here or via Discord command: <code>!train &lt;instruction&gt;</code>
+          </p>
+        </div>
+        <button class="copy-chip" onclick="clearAllRules()">Clear All Rules</button>
+      </div>
+
+      <!-- Add Rule Input -->
+      <form onsubmit="handleTrainSubmit(event)" style="display: flex; gap: 0.7rem; margin-bottom: 1.2rem; flex-wrap: wrap;">
+        <input type="text" id="new-rule-input" class="chat-input" style="flex: 1; min-width: 260px;" placeholder="e.g. আমাকে সবসময় বস বলে ডাকবা এবং খুব মিষ্টি করে কথা বলবা..." required>
+        <button type="submit" class="nav-btn" style="padding: 0.65rem 1.4rem;">
+          🧠 Train Behavior
+        </button>
+      </form>
+
+      <!-- Preset Quick Ideas -->
+      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center;">
+        <span style="font-size: 0.78rem; color: var(--text-muted);">Quick Presets:</span>
+        <button type="button" class="copy-chip" onclick="applyPresetRule('আমাকে সবসময় বস বলে সম্বোধন করবা')">+ Call Owner Boss</button>
+        <button type="button" class="copy-chip" onclick="applyPresetRule('কথার মাঝে রিয়ালিস্টিক ইমোজি ব্যবহার করবা')">+ Use Realistic Emojis</button>
+        <button type="button" class="copy-chip" onclick="applyPresetRule('সবসময় বিনয়ী ও মিষ্টি সুরে উত্তর দিবা')">+ Polite & Sweet Tone</button>
+      </div>
+
+      <!-- Active Rules List -->
+      <div style="font-size: 0.88rem; font-weight: 600; margin-bottom: 0.8rem; color: #fff;">
+        Active Custom Behaviors & Rules (<span id="rule-count">0</span>):
+      </div>
+      <div id="rules-list-container" style="display: flex; flex-direction: column; gap: 0.6rem;">
+        <div style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">
+          No custom rules added yet. Type an instruction above or in Discord via !train to customize behavior!
+        </div>
+      </div>
+    </section>
+
     <!-- Free Public Hosting Guide for Discord Developer Portal -->
     <section class="deployment-banner" id="deploy-guide">
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
@@ -174,14 +217,14 @@
         <div class="step-card">
           <div class="step-number">1</div>
           <h4>GitHub Pages (Recommended)</h4>
-          <p>Push your repository to GitHub, go to <strong>Repo Settings → Pages</strong>, select <code>main</code> branch and folder <code>/web</code> or root. You will immediately get:</p>
-          <code class="code-snippet">https://&lt;username&gt;.github.io/&lt;repo&gt;/terms.html</code>
+          <p>Go to <strong>Repo Settings → Pages</strong>, select <code>main</code> branch and folder <code>/docs</code>. You will immediately get:</p>
+          <code class="code-snippet">https://darshonbro.github.io/seno/terms.html</code>
         </div>
 
         <div class="step-card">
           <div class="step-number">2</div>
           <h4>Cloudflare Pages / Vercel</h4>
-          <p>Drag-and-drop your <code>web</code> folder to <a href="https://pages.cloudflare.com" target="_blank" rel="noopener" style="color: var(--accent-cyan);">Cloudflare Pages</a> or <a href="https://vercel.com" target="_blank" rel="noopener" style="color: var(--accent-cyan);">Vercel</a> for an instant custom HTTPS domain:</p>
+          <p>Drag-and-drop your <code>docs</code> folder to <a href="https://pages.cloudflare.com" target="_blank" rel="noopener" style="color: var(--accent-cyan);">Cloudflare Pages</a> or <a href="https://vercel.com" target="_blank" rel="noopener" style="color: var(--accent-cyan);">Vercel</a> for an instant custom HTTPS domain:</p>
           <code class="code-snippet">https://your-bot.pages.dev/terms.html</code>
         </div>
 
@@ -209,18 +252,18 @@
         </div>
         <div class="feature-card">
           <div class="feature-icon-badge">🧠</div>
-          <h3>Dynamic Mood Intelligence</h3>
-          <p>Reads the room: warm & casual for general chat, charming for affection, empathetic for sad users, and roasts only when challenged.</p>
+          <h3>Owner Behavior Training</h3>
+          <p>The bot owner can teach rules, behaviors, and knowledge in real-time via Discord commands or this web panel.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-badge">🛡️</div>
+          <h3>Respectful Pronoun Enforcement</h3>
+          <p>Strictly bans disrespectful "তুই-তোকারি" (tui, toke, tor). Always uses friendly "তুমি" or polite "আপনি".</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon-badge">⚡</div>
           <h3>Self-Healing WAF Recovery</h3>
           <p>Built-in filter bypass and automatic single-turn fallback guarantees the bot never stays stuck if upstream content filters trigger.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon-badge">🛡️</div>
-          <h3>Transient RAM Memory</h3>
-          <p>Zero database logs on disk. Conversations stay in a rolling 20-message memory window strictly in RAM, adhering to Discord privacy policies.</p>
         </div>
       </div>
     </section>
