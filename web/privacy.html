@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - Discord AI Chatbot</title>
+  <meta name="description" content="Privacy Policy for Discord AI Chatbot. Transparent data practices, transient memory explanation, and Discord Developer Policy compliance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <a href="index.html" class="logo-group">
+        <div class="bot-avatar-badge">
+          <svg viewBox="0 0 24 24">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+          <span class="online-dot"></span>
+        </div>
+        <div class="logo-text">
+          <h1>Discord AI Chatbot</h1>
+          <p>Web Control & Legal Center</p>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Dashboard</a></li>
+          <li><a href="terms.html" class="nav-link">Terms of Service</a></li>
+          <li><a href="privacy.html" class="nav-link active">Privacy Policy</a></li>
+          <li><a href="index.html#playground" class="nav-btn">Test Playground</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-wrapper">
+    <div class="legal-container">
+      <div class="legal-header">
+        <div class="legal-badge-row">
+          <span class="badge badge-blue">Official Discord Developer Document</span>
+          <span class="badge badge-green">Last Updated: September 19, 2026</span>
+        </div>
+        <h1 class="legal-title">Privacy Policy</h1>
+        <p class="legal-subtitle">Transparency regarding how Discord AI Chatbot handles, processes, and protects your information.</p>
+
+        <!-- Copy URL bar for Discord Dev Portal -->
+        <div class="url-copy-box">
+          <div class="url-info">
+            <span>Privacy URL:</span>
+            <code id="current-url">https://your-domain.com/privacy.html</code>
+          </div>
+          <button class="copy-chip" id="copy-privacy-btn" onclick="copyCurrentUrl()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy URL for Discord Portal
+          </button>
+        </div>
+      </div>
+
+      <div class="legal-content">
+        <div class="legal-highlight-box">
+          <strong>Privacy Commitment:</strong> We respect your personal privacy. Discord AI Chatbot does <strong>not</strong> maintain a permanent database of user messages, does <strong>not</strong> track user behavior across servers, and will <strong>never</strong> sell your data to any third party.
+        </div>
+
+        <h2>1. Information We Process</h2>
+        <p>To function as an interactive conversational bot, Discord AI Chatbot processes the following data transmitted via the official Discord Gateway API:</p>
+        <ul>
+          <li><strong>User Display Names & Nicknames:</strong> Processed temporarily to provide natural, friendly, human-like greetings (e.g. addressing you by your Discord name).</li>
+          <li><strong>Message Content:</strong> Only messages sent directly in designated bot channels, direct messages (DMs), or messages where the bot is specifically mentioned or prefixed are processed.</li>
+          <li><strong>Discord Channel & Guild IDs:</strong> Processed exclusively to direct responses back to the appropriate channel and maintain segregated in-memory conversation context.</li>
+          <li><strong>Message Metadata:</strong> Discord timestamps and message IDs to prevent duplicate responses.</li>
+        </ul>
+
+        <h2>2. What We Do NOT Collect</h2>
+        <p>Our bot operates with privacy-first principles. We do not collect or request:</p>
+        <ul>
+          <li>Real names, physical addresses, phone numbers, or credit card information.</li>
+          <li>Password credentials or private Discord authorization tokens.</li>
+          <li>Messages sent in non-designated channels where the bot is not summoned.</li>
+        </ul>
+
+        <h2>3. In-Memory Transient Storage (No Persistent Databases)</h2>
+        <p>To provide coherent and multi-turn conversations, the Bot maintains a transient rolling buffer of up to <strong>20 messages per channel</strong> purely in random access memory (RAM):</p>
+        <ul>
+          <li>This conversation buffer exists solely during the active execution of the bot.</li>
+          <li>Older messages are automatically discarded as newer messages arrive (rolling window FIFO).</li>
+          <li><strong>No Disk Logging:</strong> Message contents are not stored in persistent SQL/NoSQL databases or static log files.</li>
+          <li>Whenever the bot service restarts or is reloaded, all in-memory buffers are instantly erased.</li>
+        </ul>
+
+        <h2>4. Third-Party AI Model Processing</h2>
+        <p>In order to produce conversational responses, messages addressed to the Bot are transmitted via encrypted HTTPS/TLS connections to upstream Large Language Model inference endpoints (via AgentRouter / Anthropic compatible APIs):</p>
+        <ul>
+          <li>Data transmitted to the model API is used exclusively to formulate the response for that turn.</li>
+          <li>Under our enterprise API provisions, transmitted data is not used to train public foundational AI models.</li>
+        </ul>
+
+        <h2>5. Data Retention and User Deletion Rights</h2>
+        <p>In adherence to global privacy frameworks (including GDPR, CCPA, and Discord App Directory criteria), users possess full sovereignty over their data:</p>
+        <ul>
+          <li><strong>Automatic Expiration:</strong> Messages vanish from memory once the 20-message threshold is reached.</li>
+          <li><strong>Immediate Removal:</strong> If a server administrator removes or kicks the Bot from a Discord guild, all context for that guild is permanently severed immediately.</li>
+          <li><strong>Deletion Requests:</strong> If you desire manual purging of any active in-memory session, server managers may simply reboot the bot or contact our maintainer.</li>
+        </ul>
+
+        <h2>6. Security Practices</h2>
+        <p>We implement technical and operational safeguards to protect your data:</p>
+        <ul>
+          <li>All Discord Gateway and API communications are strictly encrypted using TLS 1.3 / SSL.</li>
+          <li>API keys, bot credentials, and environment tokens are stored securely in protected `.env` files and never exposed in client-facing code.</li>
+          <li>Content-filtering and security preambles are applied to prevent malicious prompt injections.</li>
+        </ul>
+
+        <h2>7. Children's Privacy</h2>
+        <p>In accordance with Discord's Terms of Service and COPPA regulations, Discord AI Chatbot is not directed toward or intended for use by children under the age of 13 (or under 16 in select jurisdictions). We do not knowingly process personal data from underage individuals.</p>
+
+        <h2>8. Updates to This Privacy Policy</h2>
+        <p>We may update this Privacy Policy from time to time. Any modifications will be posted to this page with an updated revision date. By continuing to interact with the Bot after modifications take effect, you consent to the updated policy.</p>
+
+        <h2>9. Contact & Inquiries</h2>
+        <p>For questions or privacy concerns regarding Discord AI Chatbot, please contact the bot developer through your Discord server administrator or project repository issues.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <span>© 2026 Discord AI Chatbot. All rights reserved.</span>
+      </div>
+      <ul class="footer-links">
+        <li><a href="index.html">Dashboard</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="https://discord.com/developers/docs" target="_blank" rel="noopener">Discord Docs</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <div id="toast">Copied to clipboard! Ready for Discord Developer Portal.</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const codeEl = document.getElementById('current-url');
+      if (codeEl) {
+        codeEl.textContent = window.location.href;
+      }
+    });
+
+    function copyCurrentUrl() {
+      const url = window.location.href;
+      navigator.clipboard.writeText(url).then(() => {
+        showToast("Privacy URL copied! Paste it in Discord Developer Portal.");
+      }).catch(() => {
+        showToast("Failed to copy URL automatically.");
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+  </script>
+</body>
+</html>
