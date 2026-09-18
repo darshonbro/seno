@@ -49,6 +49,7 @@ class RuleRequest(BaseModel):
 
 
 @app.get("/")
+@app.get("/index.html")
 async def get_index():
     return FileResponse(WEB_DIR / "index.html")
 
